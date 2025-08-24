@@ -1,0 +1,70 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        go-version: ['1.22', '1.23', '1.24']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+    
+    - name: Verify dependencies
+      run: go mod verify
+    
+    - name: Build
+      run: go build -v -o ce-node-exporter main.go
+    
+    - name: Test binary
+      run: |
+        ./ce-node-exporter --help
+        ./ce-node-exporter --listen-address=:9101 &
+        sleep 2
+        curl -f http://localhost:9101/metrics | grep -q "ce_node_mounts_total"
+        pkill ce-node-exporter
+    
+    - name: Upload artifact
+      if: matrix.go-version == '1.24'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ce-node-exporter
+        path: ce-node-exporter
+        retention-days: 7
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+    
+    - name: Build release binary
+      run: |
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ce-node-exporter main.go
+        tar czf ce-node-exporter-linux-amd64.tar.gz ce-node-exporter ce-node-exporter.service README.md
+    
+    - name: Upload release artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ce-node-exporter-release
+        path: ce-node-exporter-linux-amd64.tar.gz
+        retention-days: 30
