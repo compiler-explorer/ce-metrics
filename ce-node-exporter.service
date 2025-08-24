@@ -1,0 +1,17 @@
+[Unit]
+Description=Compiler Explorer Node Exporter
+After=network.target
+
+[Service]
+Type=simple
+User=nobody
+Group=nogroup
+# Configure port by changing the --listen-address flag (e.g., :9200 for port 9200)
+ExecStart=/opt/compiler-explorer/ce-metrics/ce-node-exporter/ce-node-exporter --listen-address=:9100
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
