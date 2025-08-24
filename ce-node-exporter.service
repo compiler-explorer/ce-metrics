@@ -5,8 +5,7 @@ After=network.target
 
 [Service]
 Type=simple
-User=nobody
-Group=nogroup
+DynamicUser=yes
 ExecStart=/opt/compiler-explorer/ce-metrics/ce-node-exporter --listen-address=:9100
 Restart=always
 RestartSec=10
