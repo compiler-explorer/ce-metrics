@@ -5,6 +5,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  release:
+    types: [created]
 
 jobs:
   build:
@@ -40,9 +42,8 @@ jobs:
         retention-days: 7
 
   release:
-    needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'release'
     
     steps:
     - uses: actions/checkout@v4
@@ -55,23 +56,20 @@ jobs:
     - name: Build release binaries
       run: |
         # Build AMD64 binary
-        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ce-node-exporter-amd64 main.go
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ce-node-exporter main.go
+        mv ce-node-exporter ce-node-exporter-amd64
         tar czf ce-node-exporter-linux-amd64.tar.gz ce-node-exporter-amd64 ce-node-exporter.service README.md
         
         # Build ARM64 binary
-        CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o ce-node-exporter-arm64 main.go
+        CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o ce-node-exporter main.go
+        mv ce-node-exporter ce-node-exporter-arm64
         tar czf ce-node-exporter-linux-arm64.tar.gz ce-node-exporter-arm64 ce-node-exporter.service README.md
     
-    - name: Upload AMD64 release artifact
-      uses: actions/upload-artifact@v4
+    - name: Upload Release Assets
+      uses: softprops/action-gh-release@v1
       with:
-        name: ce-node-exporter-linux-amd64
-        path: ce-node-exporter-linux-amd64.tar.gz
-        retention-days: 30
-    
-    - name: Upload ARM64 release artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ce-node-exporter-linux-arm64
-        path: ce-node-exporter-linux-arm64.tar.gz
-        retention-days: 30
+        files: |
+          ce-node-exporter-linux-amd64.tar.gz
+          ce-node-exporter-linux-arm64.tar.gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
