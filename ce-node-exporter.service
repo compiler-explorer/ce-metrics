@@ -7,7 +7,7 @@ After=network.target
 Type=simple
 User=nobody
 Group=nogroup
-ExecStart=/opt/compiler-explorer/ce-metrics/ce-node-exporter/ce-node-exporter --listen-address=:9100
+ExecStart=/opt/compiler-explorer/ce-metrics/ce-node-exporter --listen-address=:9100
 Restart=always
 RestartSec=10
 StandardOutput=journal
