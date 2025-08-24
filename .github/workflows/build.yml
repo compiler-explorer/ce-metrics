@@ -30,7 +30,7 @@ jobs:
         ./ce-node-exporter --listen-address=:9101 &
         sleep 2
         curl -f http://localhost:9101/metrics | grep -q "ce_node_mounts_total"
-        pkill ce-node-exporter
+        pkill -f ce-node-exporter
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
