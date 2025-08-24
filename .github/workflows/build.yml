@@ -56,20 +56,23 @@ jobs:
     - name: Build release binaries
       run: |
         # Build AMD64 binary
-        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ce-node-exporter main.go
-        mv ce-node-exporter ce-node-exporter-amd64
-        tar czf ce-node-exporter-linux-amd64.tar.gz ce-node-exporter-amd64 ce-node-exporter.service README.md
+        CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ce-node-exporter-amd64 main.go
         
         # Build ARM64 binary
-        CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o ce-node-exporter main.go
-        mv ce-node-exporter ce-node-exporter-arm64
-        tar czf ce-node-exporter-linux-arm64.tar.gz ce-node-exporter-arm64 ce-node-exporter.service README.md
+        CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o ce-node-exporter-arm64 main.go
+        
+        # Create zip files with the same binary name inside
+        mkdir -p amd64 arm64
+        cp ce-node-exporter-amd64 amd64/ce-node-exporter
+        cp ce-node-exporter-arm64 arm64/ce-node-exporter
+        zip -j ce-node-exporter-linux-amd64.zip amd64/ce-node-exporter
+        zip -j ce-node-exporter-linux-arm64.zip arm64/ce-node-exporter
     
     - name: Upload Release Assets
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          ce-node-exporter-linux-amd64.tar.gz
-          ce-node-exporter-linux-arm64.tar.gz
+          ce-node-exporter-linux-amd64.zip
+          ce-node-exporter-linux-arm64.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
