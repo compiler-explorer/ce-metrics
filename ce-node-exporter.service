@@ -1,9 +1,11 @@
 [Unit]
 Description=Compiler Explorer Node Exporter
+Documentation=https://github.com/compiler-explorer/ce-metrics
 After=network.target
 
 [Service]
 Type=simple
+# Run as nobody user for security (can be changed if needed)
 User=nobody
 Group=nogroup
 # Configure port by changing the --listen-address flag (e.g., :9200 for port 9200)
@@ -12,6 +14,12 @@ Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/
 
 [Install]
 WantedBy=multi-user.target
